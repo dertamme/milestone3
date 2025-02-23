@@ -1,0 +1,82 @@
+[
+    {
+        "id":1,
+        "image": ["bergmund1.png","bergmund2.png"],
+        "name": "BERGMUND",
+        "category": "chair",
+        "description": "Thanks to new research and innovative technology, the upholstered chair offers optimum seating comfort. You can change the style at any time by replacing the grey chair cover with a cover in a different color or finish.",
+        "price": 89.99
+    },
+    {
+        "id":2,
+        "image": ["tossberg1.png","tossberg2.png"],
+        "category": "chair",
+        "name": "TOSSBERG",
+        "description": "A sturdy chair for pleasant evenings with loved ones and good food. The soft, padded fabric cover and lumbar support ensure that you sit comfortably - even for long periods of time.",
+        "price": 99.00
+    },
+    {
+        "id":3,
+        "image": ["brimnes1.png","brimnes2.png"],
+        "category": "closet",
+        "name": "BRIMNES",
+        "description": "Small spaces need smart storage. This closet has a clothes rail for shirts and dresses, shelves for folded clothes, shoes and bags - and a mirrored door so you don't need a separate mirror.",
+        "price": 149.00
+    },
+    {
+        "id":4,
+        "image": ["rakkestad1.png","rakkestad2.png"],
+        "category": "closet",
+        "name": "RAKKESTAD",
+        "description": "You simply need a proper closet with all the basic functions. If you still don't have enough storage space, it's best to buy another closet from the RAKKESTAD series. Or two.",
+        "price": 149.00
+    },
+    {
+        "id":5,
+        "image": ["rakkestad1.png","rakkestad2.png"],
+        "category": "closet",
+        "name": "RAKKESTAD 1",
+        "description": "You simply need a proper closet with all the basic functions. If you still don't have enough storage space, it's best to buy another closet from the RAKKESTAD series. Or two.",
+        "price": 149.00
+    },
+    {
+        "id":6,
+        "image": ["rakkestad1.png","rakkestad2.png"],
+        "category": "closet",
+        "name": "RAKKESTAD 2",
+        "description": "You simply need a proper closet with all the basic functions. If you still don't have enough storage space, it's best to buy another closet from the RAKKESTAD series. Or two.",
+        "price": 149.00
+    },
+    {
+        "id":7,
+        "image": ["rakkestad1.png","rakkestad2.png"],
+        "category": "closet",
+        "name": "RAKKESTAD 2",
+        "description": "You simply need a proper closet with all the basic functions. If you still don't have enough storage space, it's best to buy another closet from the RAKKESTAD series. Or two.",
+        "price": 149.00
+    },
+    {
+        "id":8,
+        "image": ["rakkestad1.png","rakkestad2.png"],
+        "category": "closet",
+        "name": "RAKKESTAD 3",
+        "description": "You simply need a proper closet with all the basic functions. If you still don't have enough storage space, it's best to buy another closet from the RAKKESTAD series. Or two.",
+        "price": 149.00
+    },
+    {
+        "id":9,
+        "image": ["rakkestad1.png","rakkestad2.png"],
+        "category": "closet",
+        "name": "RAKKESTAD 4",
+        "description": "You simply need a proper closet with all the basic functions. If you still don't have enough storage space, it's best to buy another closet from the RAKKESTAD series. Or two.",
+        "price": 149.00
+    },
+    {
+        "id":10,
+        "image": ["mittzon1.png","mittzon2.png"],
+        "category": "table",
+        "name": "MITTZON",
+        "description": "YTactile design, clever functions and the option to set the right height during assembly - the height-adjustable MITTZON desk increases your well-being and your ability to concentrate. With a 10-year guarantee.",
+        "price": 249.00
+    }
+]

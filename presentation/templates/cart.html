@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+    {% if products %}
+        <table style="width: 100%; border-collapse: collapse;">
+            <thead>
+                <tr>
+                    <th style="font-size: 1.5em; text-align: left;"></th>
+                    <th style="font-size: 1.5em; text-align: left;">Product</th>
+                    <th style="font-size: 1.5em; text-align: left;">Quantity</th>
+                    <th style="font-size: 1.5em; text-align: left;">Unit price</th>
+                    <th style="font-size: 1.5em; text-align: left;">Price</th>
+                    <th style="font-size: 1.5em; text-align: left;"></th> 
+                </tr>
+            </thead>
+            <tbody>
+                {% for product in products %}
+                    <tr style="border-bottom: 1px solid #ddd;">
+                        <!-- Produktbild mit Link zur Produktseite -->
+                        <td style="font-size: 1.2em; text-align: left; padding: 10px;">
+                            <a href="{{ url_for('product', product_name=product.name) }}">
+                                <img src="{{ url_for('send_image', filename=product.image) }}" alt="{{ product.name }}" style="width: 100px; height: 100px;">
+                            </a>
+                        </td>
+
+                        <!-- Produktname mit Link zur Produktseite -->
+                        <td style="font-size: 1.2em; text-align: left; padding: 10px;">
+                            <a href="{{ url_for('product', product_name=product.name) }}">
+                                {{ product.name }}
+                            </a>
+                        </td>
+
+                        <td style="font-size: 1.2em; text-align: left; padding: 10px;">
+                            <span class="quantity-controls">
+                                <a href="{{ url_for('decrease_quantity', product_id=product.id) }}">−</a>
+                                {{ product.quantity }}
+                                <a href="{{ url_for('increase_quantity', product_id=product.id) }}">+</a>
+                            </span>
+                        </td>
+                        
+                        <td style="font-size: 1.2em; text-align: left; padding: 10px;">€{{ product.price }}</td>
+                        <td style="font-size: 1.2em; text-align: left; padding: 10px;">€{{ product.total }}</td>
+                        <td style="font-size: 1.2em; text-align: left; padding: 10px;">
+                            <a href="{{ url_for('remove_from_cart', product_id=product.id) }}" class="btn-remove">
+                                <i class="fas fa-trash-alt"></i>
+                            </a>
+                        </td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+
+        <div style="text-align: right; font-size: 1.5em; padding-top: 20px;">
+            <h3>Total price: €{{ total_price }}</h3>
+        </div>
+
+        <div style="display: flex; justify-content: space-between; margin-top: 20px;">
+            <a href="{{ url_for('index') }}" class="btn-add-to-cart" style="margin-right: 10px;">
+                <i class="fas fa-arrow-left" style="margin-right: 10px;"></i> Continue shopping
+            </a>
+            <a href="{{ url_for('checkout') }}" class="btn-checkout">
+                Checkout <i class="fas fa-shopping-cart" style="margin-left: 10px;"></i>
+            </a>
+        </div>
+        
+
+    {% else %}
+        <p style="font-size: 1.5em;">Your shopping cart is empty.</p>
+    {% endif %}
+
+{% endblock %}

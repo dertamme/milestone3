@@ -1,0 +1,174 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Products</h2>
+
+    <!-- Searchbar -->
+    <div class="search-container">
+        <input type="text" id="search-bar" placeholder="Search for products..." oninput="filterProducts()">
+    </div>
+
+    <!-- Tags  -->
+    <div id="tags-container">
+        <div id="tags-list"></div>
+    </div>
+    
+    <!-- Sort -->
+    <div id="sort-options">
+        <label for="sort-by">Sort by:</label>
+        <select id="sort-by" onchange="sortProducts()">
+            <option value="newest">Newest</option>
+            <option value="price-low-to-high">Price: Low to High</option>
+            <option value="price-high-to-low">Price: High to Low</option>
+            <option value="alphabetical">Alphabetical</option>
+        </select>
+    </div>
+    
+    <!-- Product Grid -->
+    <div class="product-grid" id="product-grid">
+        <!-- Products are dynamically inserted here -->
+    </div>
+
+    <script>
+        var products = {{ items | tojson }};  
+        var selectedCategories = ['all'];  
+        var filteredProducts = products;  
+
+        function filterProducts() {
+            var searchQuery = document.getElementById('search-bar').value.toLowerCase();
+
+            // Filter products based on category / search term
+            filteredProducts = products.filter(function(product) {
+                var productName = product.name.toLowerCase();
+                var categoryMatch = selectedCategories.includes('all') || selectedCategories.includes(product.category.toLowerCase());
+                return (productName.includes(searchQuery) || searchQuery === '') && categoryMatch;
+            });
+
+            updateProductGrid(filteredProducts);  
+        }
+
+        // Load Tags
+        function loadTags() {
+            var tagsSet = new Set();
+
+            products.forEach(function(item) {
+                if (item.category) {
+                    tagsSet.add(item.category.toLowerCase());
+                }
+            });
+
+            var tagsArray = ['all'];  
+            tagsSet.forEach(function(tag) {
+                tagsArray.push(tag); 
+            });
+
+            var tagsContainer = document.getElementById('tags-list');
+            tagsContainer.innerHTML = "";  
+
+            tagsArray.forEach(function(tag) {
+                var tagButton = document.createElement('button');
+                tagButton.textContent = tag.charAt(0).toUpperCase() + tag.slice(1);  
+                tagButton.classList.add('tag-button');
+                tagButton.onclick = function() { toggleTagSelection(tag); }; 
+                tagButton.setAttribute('data-category', tag);
+                tagsContainer.appendChild(tagButton);
+            });
+
+            updateTagHighlight();  
+            filterProducts();  
+        }
+
+        // Activate / deactivate tags
+        function toggleTagSelection(category) {
+            if (category === 'all') {
+                selectedCategories = ['all'];  
+            } else {
+                if (selectedCategories.includes('all')) {
+                    selectedCategories = [category];  
+                } else {
+                    if (selectedCategories.includes(category)) {
+                        selectedCategories = selectedCategories.filter(c => c !== category);  
+                    } else {
+                        selectedCategories.push(category);  
+                    }
+                }
+            }
+            updateTagHighlight();  
+            filterProducts();  
+        }
+
+        // Update active tags
+        function updateTagHighlight() {
+            var allTags = document.querySelectorAll('.tag-button');
+            allTags.forEach(function(tag) {
+                var category = tag.getAttribute('data-category');
+                if (selectedCategories.includes(category)) {
+                    tag.classList.add('active');  
+                } else {
+                    tag.classList.remove('active');  
+                }
+            });
+        }
+
+        // Sort Products
+        function sortProducts() {
+            var sortBy = document.getElementById('sort-by').value;
+
+            
+            var sortedProducts = [...filteredProducts];  
+
+            if (sortBy === 'newest') {
+                sortedProducts.sort(function(a, b) {
+                    return new Date(b.date_added) - new Date(a.date_added);  
+                });
+            } else if (sortBy === 'price-low-to-high') {
+                sortedProducts.sort(function(a, b) {
+                    return a.price - b.price;  
+                });
+            } else if (sortBy === 'price-high-to-low') {
+                sortedProducts.sort(function(a, b) {
+                    return b.price - a.price;  
+                });
+            } else if (sortBy === 'alphabetical') {
+                sortedProducts.sort(function(a, b) {
+                    return a.name.localeCompare(b.name);  
+                });
+            }
+
+            updateProductGrid(sortedProducts);  
+        }
+
+        // Produkte im Gitter anzeigen
+        function updateProductGrid(filteredProducts) {
+            var productGrid = document.getElementById('product-grid');
+            productGrid.innerHTML = ''; 
+
+            filteredProducts.forEach(function(product) {
+                var productDiv = document.createElement('div');
+                productDiv.classList.add('product');
+                productDiv.setAttribute('data-product-category', product.category.toLowerCase());
+                productDiv.setAttribute('data-product-name', product.name.toLowerCase());
+
+                productDiv.innerHTML = `
+                    <a href="/product/${product.name}" class="product-link">
+                        <div class="product-images">
+                            <img src="{{ url_for('send_image', filename='') }}${product.image[0]}" alt="${product.name}">
+                        </div>
+                        <h3>${product.name}</h3>
+                        <p><strong>Price:</strong> €${product.price}</p>
+                    </a>
+                    <a href="{{ url_for('add_to_cart', product_id='') }}${product.id}" class="btn-add-to-cart">Add to cart</a>
+                `;
+
+                productGrid.appendChild(productDiv);
+            });
+        }
+
+        
+        window.onload = function() {
+            loadTags(); 
+            updateProductGrid(products);  
+        };
+    </script>
+
+{% endblock %}

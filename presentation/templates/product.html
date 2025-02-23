@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>{{ product.name }}</h2>
+
+    <div class="product-details">
+        <div class="product-images">
+            <!-- Images -->
+            {% for image in product.image %}
+                <img src="{{ url_for('send_image', filename=image) }}" alt="{{ product.name }}">
+            {% endfor %}
+        </div>
+
+        <div class="product-info">
+            <!-- Info-Box  -->
+            <div class="info-box">
+                <p><strong>Description:</strong> {{ product.description }}</p>
+                <p><strong>Price:</strong> €{{ product.price }}</p>
+                <a href="{{ url_for('add_to_cart', product_id=product.id) }}" class="btn-add-to-cart">Add to cart</a>
+            </div>
+        </div>
+    </div>
+
+    <a href="{{ url_for('store') }}">Zurück zum Store</a>
+
+    <h3>See more from {{ product.category }}</h3>
+    <div class="product-grid">
+        {% for item in same_category_products %}
+            {% if item.id != product.id %}  
+                <div class="product">
+                    <a href="{{ url_for('product', product_name=item.name) }}" class="product-link">
+                        <div class="product-images">
+                            <img src="{{ url_for('send_image', filename=item.image[0]) }}" alt="{{ item.name }}">
+                        </div>
+                        <h3>{{ item.name }}</h3>
+                        <p><strong>Price:</strong> €{{ item.price }}</p>
+                    </a>
+                    <a href="{{ url_for('add_to_cart', product_id=item.id) }}" class="btn-add-to-cart">Add to cart</a>
+                </div>
+            {% endif %}
+        {% endfor %}
+    </div>
+{% endblock %}

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LowTech GmbH - Online Store</title>
+    <!-- Verlinke die style.css-Datei aus dem statischen Ordner -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <!-- FontAwesome für das Warenkorb-Icon -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+</head>
+<body>
+
+    <!-- Headerbereich -->
+    <header>
+        <div class="header-container">
+            <a href="{{ url_for('index') }}" class="logo">LowTech GmbH</a>
+            <a href="{{ url_for('cart') }}" class="cart-icon">
+                <i class="fas fa-shopping-cart"></i>
+                {% if cart_count > 0 %}
+                    <span class="cart-count">{{ cart_count }}</span> 
+                {% endif %}
+            </a>
+        </div>
+    </header>
+
+    <!-- Inhalt der Seite -->
+    <div id="content">
+        {% block content %}
+        {% endblock %}
+    </div>
+
+</body>
+</html>

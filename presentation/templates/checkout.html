@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+
+{% block content %}
+    <h2>Checkout</h2>
+
+    <form action="{{ url_for('submit_checkout') }}" method="POST" style="max-width: 600px; margin: 0 auto;">
+        
+        <!-- Name -->
+        <div style="margin-bottom: 15px;">
+            <label for="name" style="display: block; font-size: 1.2em;">Name</label>
+            <input type="text" id="name" name="name" required style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;">
+        </div>
+    
+        <!-- Street and Number -->
+        <div style="display: flex; margin-bottom: 15px;">
+            <div style="flex: 7;">
+                <label for="street" style="display: block; font-size: 1.2em;">Street</label>
+                <input type="text" id="street" name="street" required style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="flex: 3;">
+                <label for="number" style="display: block; font-size: 1.2em;">Number</label>
+                <input type="text" id="number" name="number" required style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+        </div>
+    
+        <!-- City and Zipcode -->
+        <div style="display: flex; margin-bottom: 15px;">
+            <div style="flex: 7;">
+                <label for="city" style="display: block; font-size: 1.2em;">City</label>
+                <input type="text" id="city" name="city" required style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;">
+            </div>
+            <div style="flex: 1;"></div>
+            <div style="flex: 3;">
+                <label for="zipcode" style="display: block; font-size: 1.2em;">Zipcode</label>
+                <input type="text" id="zipcode" name="zipcode" required pattern="^\d{5}$" title="Zipcode must be exactly 5 digits" maxlength="5" style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;">
+                <small style="color: #888;">Enter exactly 5 digits</small>
+            </div>
+            
+        </div>
+    
+        <!-- Line -->
+        <hr style="border: 1px solid #ccc; margin-bottom: 50px; margin-top: 50px;">
+    
+        <!-- Credit Card -->
+        <div style="margin-bottom: 15px;">
+            <label for="credit_card_name" style="display: block; font-size: 1.2em;">Credit Card Holder</label>
+            <input type="text" id="credit_card_name" name="credit_card_name" required style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;">
+            <small style="color: #888;">Name on your credit card</small>
+        </div>
+    
+        <div style="display: flex; margin-bottom: 15px;">
+            <div style="flex: 5;">
+                <label for="credit_card_number" style="display: block; font-size: 1.2em;">Credit Card Number</label>
+                <input type="text" id="credit_card_number" name="credit_card_number" required maxlength="19" pattern="\d{16}" title="Credit Card Number must be exactly 16 digits" style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;" oninput="formatCardNumber(event)">
+                <small style="color: #888;">XXXX XXXX XXXX XXXX (16 digits)</small>
+            </div>
+            <div style="flex: 1;"></div>
+    
+            <div style="flex: 2;">
+                <label for="ccv" style="display: block; font-size: 1.2em;">CCV</label>
+                <input type="text" id="ccv" name="ccv" required maxlength="3" pattern="\d{3}" title="CCV must be exactly 3 digits" style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;" oninput="limitCCVInput(event)">
+                <small style="color: #888;">Enter 3 digits</small>
+            </div>
+    
+            <div style="flex: 1;"></div>
+    
+            <div style="flex: 2;">
+                <label for="valid_date" style="display: block; font-size: 1.2em;">Valid until</label>
+                <input type="month" id="valid_date" name="valid_date" title="Please provide a valid date MM / JJJJ." required style="width: 100%; padding: 10px; font-size: 1em; border: 1px solid #ccc; border-radius: 4px;" onchange="validateDate()">
+                <small style="color: #888;">MM/JJJJ</small>
+                <p id="date-error" style="color: red; display: none;">Please select a valid date in the future with a 4-digit year.</p>
+            </div>
+        </div>
+    
+        <!-- Line -->
+        <hr style="border: 1px solid #ccc; margin-bottom: 50px; margin-top: 50px;">
+    
+        <!-- Total Price -->
+        <div style="display: flex; margin-bottom: 15px; align-items: center;">
+            <div style="flex: 4; text-align: center; font-size: 1.5em; margin-right: 20px;">
+                <strong>Total Amount: €{{ total_price }}</strong>
+            </div>
+    
+            <!-- Hidden Total Price Field -->
+            <input type="hidden" name="total_price" value="{{ total_price }}">
+    
+            <!-- Submit Button -->
+            <div style="flex: 5; text-align: center;">
+                <button type="submit" class="btn-checkout" style="width: 100%; max-width: 600px; padding: 15px; background-color: #4CAF50; color: white; border: none; border-radius: 5px; font-size: 1.2em;">
+                    Submit Order
+                </button>
+            </div>
+        </div>
+    </form>
+    
+
+    <script>
+                
+        function formatCardNumber(event) {
+            let input = event.target;
+            let value = input.value.replace(/\D/g, ''); 
+            if (value.length > 16) {
+                value = value.substring(0, 16); 
+            }
+            input.value = value;
+        }
+
+        
+        function limitCCVInput(event) {
+            let input = event.target;
+            let value = input.value.replace(/\D/g, ''); 
+            if (value.length > 3) {
+                value = value.substring(0, 3); 
+            }
+            input.value = value; 
+        }
+
+
+        function validateDate() {
+        const inputDate = document.getElementById('valid_date').value;
+        const currentDate = new Date();
+        const inputYearMonth = new Date(inputDate + "-01"); // Append a day to make it a valid date
+        const inputYear = inputDate.split('-')[0]; // Extract the year part of the date
+
+        // Check if the year has exactly 4 digits
+        if (inputYear.length !== 4) {
+            document.getElementById('date-error').textContent = "Please select a valid date with a 4-digit year.";
+            document.getElementById('date-error').style.display = 'block';
+            document.getElementById('valid_date').setCustomValidity("Year must be exactly 4 digits.");
+        } else if (inputYearMonth <= currentDate) {
+            // If the selected date is not in the future
+            document.getElementById('date-error').textContent = "Please select a date in the future.";
+            document.getElementById('date-error').style.display = 'block';
+            document.getElementById('valid_date').setCustomValidity("Please select a future date.");
+        } else {
+            // If everything is valid, hide the error message and reset custom validity
+            document.getElementById('date-error').style.display = 'none';
+            document.getElementById('valid_date').setCustomValidity("");
+        }
+    }
+
+        // Additional validation on form submission (in case JavaScript is disabled)
+        document.querySelector("form").addEventListener("submit", function(event) {
+            const inputDate = document.getElementById('valid_date').value;
+            const currentDate = new Date();
+            const inputYearMonth = new Date(inputDate + "-01");
+            const inputYear = inputDate.split('-')[0];
+
+            if (inputYear.length !== 4 || inputYearMonth <= currentDate) {
+                event.preventDefault(); // Prevent form submission
+                alert("Please select a valid date in the future with a 4-digit year.");
+            }
+        });
+    </script>
+{% endblock %}
