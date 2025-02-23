@@ -8,6 +8,12 @@ export default function ProductDetails() {
   const [product, setProduct] = useState(null);
   const [message, setMessage] = useState("");
 
+  // Load cart from localStorage or default to an empty array
+  const [cart, setCart] = useState(() => {
+    const savedCart = localStorage.getItem("cart");
+    return savedCart ? JSON.parse(savedCart) : [];
+  });
+
   useEffect(() => {
     fetch(`${API_URL}/products/${id}`)
       .then((res) => res.json())
@@ -15,19 +21,29 @@ export default function ProductDetails() {
   }, [id]);
 
   const addToCart = () => {
-    fetch(`${API_URL}/cart`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ product_id: product.product_id, quantity: 1 }),
-    })
-      .then((res) => {
-        if (res.ok) {
-          setMessage("Product added to cart!");
-        } else {
-          setMessage("Failed to add product to cart.");
-        }
-      })
-      .catch(() => setMessage("An error occurred while adding to cart."));
+    if (!product) return;
+
+    // Check if product already exists in the cart
+    const existingItem = cart.find(
+      (item) => item.product_id === product.product_id
+    );
+
+    let updatedCart;
+    if (existingItem) {
+      // Increase quantity if it already exists
+      updatedCart = cart.map((item) =>
+        item.product_id === product.product_id
+          ? { ...item, quantity: item.quantity + 1 }
+          : item
+      );
+    } else {
+      // Add new product to the cart
+      updatedCart = [...cart, { ...product, quantity: 1 }];
+    }
+
+    setCart(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+    setMessage("Product added to cart!");
   };
 
   if (!product) return <p>Loading...</p>;
@@ -37,7 +53,9 @@ export default function ProductDetails() {
       <h2>{product.name}</h2>
       <p>{product.description}</p>
       <p>Price: ${product.price}</p>
+
       <button onClick={addToCart}>Add to Cart</button>
+
       {message && <p>{message}</p>}
     </div>
   );

@@ -1,62 +1,48 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-
-const API_URL = "http://localhost:5000/api";
+import { Link } from "react-router-dom"; // Import Link from react-router-dom
 
 export default function ShoppingCart() {
   const [cartItems, setCartItems] = useState([]);
 
+  // Load the cart from localStorage on component mount
   useEffect(() => {
-    fetch(`${API_URL}/cart`)
-      .then((res) => res.json())
-      .then((data) => setCartItems(data));
+    const savedCart = localStorage.getItem("cart");
+    if (savedCart) {
+      setCartItems(JSON.parse(savedCart));
+    }
   }, []);
 
-  const handleQuantityChange = (id, quantity) => {
-    fetch(`${API_URL}/cart/${id}`, {
-      method: "PATCH",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ quantity }),
-    }).then(() => {
-      setCartItems((items) =>
-        items.map((item) => (item.id === id ? { ...item, quantity } : item))
-      );
-    });
-  };
-
-  const handleRemove = (id) => {
-    fetch(`${API_URL}/cart/${id}`, { method: "DELETE" }).then(() => {
-      setCartItems((items) => items.filter((item) => item.id !== id));
-    });
-  };
-
-  if (cartItems.length === 0) {
-    return (
-      <p>
-        Your cart is empty. <Link to='/'>Start shopping!</Link>
-      </p>
+  const removeItem = (product_id) => {
+    const updatedCart = cartItems.filter(
+      (item) => item.product_id !== product_id
     );
-  }
+    setCartItems(updatedCart);
+    localStorage.setItem("cart", JSON.stringify(updatedCart));
+  };
 
   return (
     <div>
       <h2>Shopping Cart</h2>
-      <ul>
-        {cartItems.map((item) => (
-          <li key={item.id}>
-            <span>{item.name}</span>
-            <input
-              type='number'
-              value={item.quantity}
-              onChange={(e) =>
-                handleQuantityChange(item.id, parseInt(e.target.value, 10))
-              }
-            />
-            <button onClick={() => handleRemove(item.id)}>Remove</button>
-          </li>
-        ))}
-      </ul>
-      <Link to='/checkout'>Proceed to Checkout</Link>
+      {cartItems.length === 0 ? (
+        <p>Your cart is empty.</p>
+      ) : (
+        <ul>
+          {cartItems.map((item) => (
+            <li key={item.product_id}>
+              <strong>{item.name}</strong> (x{item.quantity || 1}) - $
+              {item.price}
+              <button onClick={() => removeItem(item.product_id)}>
+                Remove
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
+      {cartItems.length > 0 && (
+        <Link to='/checkout'>
+          <button>Proceed to Checkout</button>
+        </Link>
+      )}
     </div>
   );
 }
