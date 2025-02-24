@@ -49,6 +49,63 @@ def get_product(product_id):
         return jsonify({"error": str(e)}), 500
 
 
+# Create a new product
+@app.route("/api/products", methods=["POST"])
+def create_product():
+    """
+    Expects JSON:
+    {
+      "name": "Oak Dining Table",
+      "description": "A sturdy oak dining table that seats six.",
+      "price": 299.99,
+      "category_id": 2,
+    }
+    """
+    data = request.json
+
+    # Validate required fields
+    required_fields = [
+        "name",
+        "description",
+        "price",
+        "category_id",
+    ]
+    missing_fields = [field for field in required_fields if field not in data]
+
+    if missing_fields:
+        return jsonify({"error": f"Missing fields: {', '.join(missing_fields)}"}), 400
+
+    try:
+        # Extract data
+        name = data["name"]
+        description = data["description"]
+        price = float(data["price"])
+        category_id = int(data["category_id"])
+
+        # Create new product
+        new_product = Product(
+            name=name, description=description, price=price, category_id=category_id
+        )
+
+        db.session.add(new_product)
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "message": "Product created successfully",
+                    "product": new_product.to_dict(),
+                }
+            ),
+            201,
+        )
+
+    except ValueError:
+        return jsonify({"error": "Invalid data types provided"}), 400
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 @app.route("/api/orders", methods=["POST"])
 def create_order():
     """
