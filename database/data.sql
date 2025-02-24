@@ -31,6 +31,37 @@ VALUES
         'Compact wooden coffee table with a rustic finish.',
         1,
         199.99
+    ),
+    (
+        'Bedside Table',
+        'A small bedside table with a drawer.',
+        1,
+        149.99
+    ),
+    ('Bar Stool', 'High wooden bar stool.', 2, 119.99),
+    (
+        'Rocking Chair',
+        'Comfortable rocking chair for the porch.',
+        2,
+        189.99
+    ),
+    (
+        'Corner Cabinet',
+        'Corner cabinet that fits in small spaces.',
+        3,
+        299.99
+    ),
+    (
+        'TV Console Cabinet',
+        'Wide cabinet for a TV and accessories.',
+        3,
+        359.99
+    ),
+    (
+        'Conference Table',
+        'Large table suitable for office meetings.',
+        1,
+        999.99
     );
 
 INSERT INTO
@@ -45,6 +76,16 @@ VALUES
         'Bob Carpenter',
         'bob.carpenter@example.com',
         '555-987-6543'
+    ),
+    (
+        'Chris Wood',
+        'chris.wood@example.com',
+        '555-444-5555'
+    ),
+    (
+        'Emily White',
+        'emily.white@example.com',
+        '555-777-8888'
     );
 
 INSERT INTO
@@ -107,4 +148,10 @@ VALUES
     (1, 20, 5, 1),
     (2, 15, 3, 1),
     (3, 10, 2, 2),
-    (4, 25, 7, 1);
+    (4, 25, 7, 1),
+    (5, 10, 2, 2),
+    (6, 12, 4, 1),
+    (7, 8, 3, 2),
+    (8, 6, 2, 2),
+    (9, 15, 5, 1),
+    (10, 3, 1, 1);
