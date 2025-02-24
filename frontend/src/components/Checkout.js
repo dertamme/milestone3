@@ -1,5 +1,12 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Paper,
+  Box,
+  CircularProgress,
+} from "@mui/material";
 
 const API_URL = "http://localhost:5000/api";
 
@@ -7,6 +14,7 @@ export default function Checkout() {
   const [cartItems, setCartItems] = useState([]);
   const paypalRef = useRef(null);
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
 
   // Load cart from localStorage
   useEffect(() => {
@@ -14,6 +22,7 @@ export default function Checkout() {
     if (savedCart) {
       setCartItems(JSON.parse(savedCart));
     }
+    setLoading(false);
   }, []);
 
   // Calculate total cost
@@ -22,10 +31,10 @@ export default function Checkout() {
     0
   );
 
-  // Call the backend to create the order (always PayPal in this scenario)
+  // Create order in backend
   const createOrderInBackend = useCallback(() => {
     const orderData = {
-      user_id: 1, // Hard-coded user for testing
+      user_id: 1, // Hardcoded test user
       payment_method: "PayPal",
       cart_items: cartItems,
     };
@@ -50,7 +59,7 @@ export default function Checkout() {
         // Clear cart
         localStorage.removeItem("cart");
         setCartItems([]);
-        // Navigate away (e.g., back home or to a confirmation page)
+        // Navigate away (e.g., home or confirmation page)
         navigate("/");
       })
       .catch((error) => {
@@ -64,7 +73,6 @@ export default function Checkout() {
       window.paypal
         .Buttons({
           createOrder: (_data, actions) => {
-            // Set up the PayPal transaction
             return actions.order.create({
               purchase_units: [
                 {
@@ -74,10 +82,8 @@ export default function Checkout() {
             });
           },
           onApprove: async (_data, actions) => {
-            // Capture the funds from the transaction
             const details = await actions.order.capture();
             console.log("PayPal Payment Approved:", details);
-
             // Finalize order in the backend
             createOrderInBackend();
           },
@@ -91,30 +97,60 @@ export default function Checkout() {
   }, [cartItems, totalCost, createOrderInBackend]);
 
   return (
-    <div>
-      <h2>Checkout</h2>
+    <Container maxWidth='md' sx={{ mt: 4 }}>
+      <Paper elevation={3} sx={{ p: 4 }}>
+        <Typography variant='h4' align='center' gutterBottom>
+          Checkout
+        </Typography>
 
-      {/* If cart is empty, show message */}
-      {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
-      ) : (
-        <>
-          <h3>Order Summary</h3>
-          <ul>
-            {cartItems.map((item) => (
-              <li key={item.product_id}>
-                {item.name} (x{item.quantity || 1}) - ${item.price}
-              </li>
-            ))}
-          </ul>
-          <p>
-            <strong>Total: ${totalCost.toFixed(2)}</strong>
-          </p>
+        {/* Loading State */}
+        {loading ? (
+          <Box display='flex' justifyContent='center' mt={3}>
+            <CircularProgress />
+          </Box>
+        ) : cartItems.length === 0 ? (
+          <Typography variant='h6' align='center'>
+            Your cart is empty.
+          </Typography>
+        ) : (
+          <>
+            {/* Order Summary */}
+            <Typography variant='h5' sx={{ mt: 2, mb: 2 }}>
+              Order Summary
+            </Typography>
+            <Paper variant='outlined' sx={{ p: 2, mb: 2 }}>
+              {cartItems.map((item) => (
+                <Box
+                  key={item.product_id}
+                  display='flex'
+                  justifyContent='space-between'
+                  sx={{ mb: 1 }}
+                >
+                  <Typography variant='body1'>
+                    {item.name} (x{item.quantity || 1})
+                  </Typography>
+                  <Typography variant='body1'>
+                    ${item.price.toFixed(2)}
+                  </Typography>
+                </Box>
+              ))}
+              <Box
+                display='flex'
+                justifyContent='space-between'
+                sx={{ mt: 2, fontWeight: "bold" }}
+              >
+                <Typography variant='h6'>Total:</Typography>
+                <Typography variant='h6'>${totalCost.toFixed(2)}</Typography>
+              </Box>
+            </Paper>
 
-          <h3>PayPal Payment</h3>
-          <div ref={paypalRef} />
-        </>
-      )}
-    </div>
+            {/* PayPal Button */}
+            <Box mt={3} display='flex' justifyContent='center'>
+              <div ref={paypalRef} />
+            </Box>
+          </>
+        )}
+      </Paper>
+    </Container>
   );
 }

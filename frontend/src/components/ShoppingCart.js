@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom"; // Import Link from react-router-dom
+import { Link } from "react-router-dom";
+import {
+  Container,
+  Typography,
+  Button,
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableRow,
+  Paper,
+} from "@mui/material";
 
 export default function ShoppingCart() {
   const [cartItems, setCartItems] = useState([]);
 
-  // Load the cart from localStorage on component mount
   useEffect(() => {
     const savedCart = localStorage.getItem("cart");
     if (savedCart) {
@@ -21,28 +31,54 @@ export default function ShoppingCart() {
   };
 
   return (
-    <div>
-      <h2>Shopping Cart</h2>
+    <Container sx={{ mt: 4 }}>
+      <Typography variant='h4'>Shopping Cart</Typography>
+
       {cartItems.length === 0 ? (
-        <p>Your cart is empty.</p>
+        <Typography variant='h6'>Your cart is empty.</Typography>
       ) : (
-        <ul>
-          {cartItems.map((item) => (
-            <li key={item.product_id}>
-              <strong>{item.name}</strong> (x{item.quantity || 1}) - $
-              {item.price}
-              <button onClick={() => removeItem(item.product_id)}>
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
+        <Paper sx={{ mt: 3 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Product</TableCell>
+                <TableCell>Quantity</TableCell>
+                <TableCell>Price</TableCell>
+                <TableCell>Actions</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {cartItems.map((item) => (
+                <TableRow key={item.product_id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.quantity}</TableCell>
+                  <TableCell>${item.price}</TableCell>
+                  <TableCell>
+                    <Button
+                      variant='outlined'
+                      color='error'
+                      onClick={() => removeItem(item.product_id)}
+                    >
+                      Remove
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </Paper>
       )}
+
       {cartItems.length > 0 && (
-        <Link to='/checkout'>
-          <button>Proceed to Checkout</button>
-        </Link>
+        <Button
+          variant='contained'
+          sx={{ mt: 3 }}
+          component={Link}
+          to='/checkout'
+        >
+          Proceed to Checkout
+        </Button>
       )}
-    </div>
+    </Container>
   );
 }

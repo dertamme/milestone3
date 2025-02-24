@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useParams } from "react-router-dom";
+import { Container, Typography, Button, Paper, Box } from "@mui/material";
 
 const API_URL = "http://localhost:5000/api";
 
 export default function ProductDetails() {
-  const { id } = useParams(); // Retrieve the product ID from the URL
+  const { id } = useParams();
   const [product, setProduct] = useState(null);
   const [message, setMessage] = useState("");
 
-  // Load cart from localStorage or default to an empty array
   const [cart, setCart] = useState(() => {
     const savedCart = localStorage.getItem("cart");
     return savedCart ? JSON.parse(savedCart) : [];
@@ -23,21 +23,18 @@ export default function ProductDetails() {
   const addToCart = () => {
     if (!product) return;
 
-    // Check if product already exists in the cart
     const existingItem = cart.find(
       (item) => item.product_id === product.product_id
     );
-
     let updatedCart;
+
     if (existingItem) {
-      // Increase quantity if it already exists
       updatedCart = cart.map((item) =>
         item.product_id === product.product_id
           ? { ...item, quantity: item.quantity + 1 }
           : item
       );
     } else {
-      // Add new product to the cart
       updatedCart = [...cart, { ...product, quantity: 1 }];
     }
 
@@ -49,14 +46,27 @@ export default function ProductDetails() {
   if (!product) return <p>Loading...</p>;
 
   return (
-    <div>
-      <h2>{product.name}</h2>
-      <p>{product.description}</p>
-      <p>Price: ${product.price}</p>
+    <Container sx={{ mt: 4 }}>
+      <Paper sx={{ p: 4 }}>
+        <Typography variant='h4'>{product.name}</Typography>
+        <Typography variant='body1' sx={{ mt: 2 }}>
+          {product.description}
+        </Typography>
+        <Typography variant='h5' sx={{ mt: 2 }}>
+          ${product.price}
+        </Typography>
 
-      <button onClick={addToCart}>Add to Cart</button>
-
-      {message && <p>{message}</p>}
-    </div>
+        <Box sx={{ mt: 3 }}>
+          <Button variant='contained' onClick={addToCart}>
+            Add to Cart
+          </Button>
+          {message && (
+            <Typography color='success.main' sx={{ mt: 2 }}>
+              {message}
+            </Typography>
+          )}
+        </Box>
+      </Paper>
+    </Container>
   );
 }
