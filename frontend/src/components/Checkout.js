@@ -6,6 +6,8 @@ import {
   Paper,
   Box,
   CircularProgress,
+  Snackbar,
+  Alert,
 } from "@mui/material";
 
 const API_URL = "http://localhost:5000/api";
@@ -15,6 +17,13 @@ export default function Checkout() {
   const paypalRef = useRef(null);
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
+
+  // Snackbar State
+  const [snackbar, setSnackbar] = useState({
+    open: false,
+    message: "",
+    severity: "success", // 'success' | 'error' | 'warning' | 'info'
+  });
 
   // Load cart from localStorage
   useEffect(() => {
@@ -55,15 +64,27 @@ export default function Checkout() {
         return res.json();
       })
       .then((data) => {
-        alert(`Order placed successfully! Order ID: ${data.order_id}`);
+        // Show success Snackbar
+        setSnackbar({
+          open: true,
+          message: `Order placed successfully! Order ID: ${data.order_id}`,
+          severity: "success",
+        });
         // Clear cart
         localStorage.removeItem("cart");
         setCartItems([]);
-        // Navigate away (e.g., home or confirmation page)
-        navigate("/");
+        // Navigate after a short delay to allow users to see the message
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
       })
       .catch((error) => {
-        alert(`Error placing order: ${error.message}`);
+        // Show error Snackbar
+        setSnackbar({
+          open: true,
+          message: `Error placing order: ${error.message}`,
+          severity: "error",
+        });
       });
   }, [cartItems, navigate]);
 
@@ -89,12 +110,25 @@ export default function Checkout() {
           },
           onError: (err) => {
             console.error("PayPal Checkout Error:", err);
-            alert("There was an error with PayPal payment.");
+            // Show error Snackbar
+            setSnackbar({
+              open: true,
+              message: "There was an error with PayPal payment.",
+              severity: "error",
+            });
           },
         })
         .render(paypalRef.current);
     }
   }, [cartItems, totalCost, createOrderInBackend]);
+
+  // Handle Snackbar Close
+  const handleCloseSnackbar = (event, reason) => {
+    if (reason === "clickaway") {
+      return;
+    }
+    setSnackbar((prev) => ({ ...prev, open: false }));
+  };
 
   return (
     <Container maxWidth='md' sx={{ mt: 4 }}>
@@ -151,6 +185,22 @@ export default function Checkout() {
           </>
         )}
       </Paper>
+
+      {/* Snackbar for Notifications */}
+      <Snackbar
+        open={snackbar.open}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+        anchorOrigin={{ vertical: "bottom", horizontal: "center" }}
+      >
+        <Alert
+          onClose={handleCloseSnackbar}
+          severity={snackbar.severity}
+          sx={{ width: "100%" }}
+        >
+          {snackbar.message}
+        </Alert>
+      </Snackbar>
     </Container>
   );
 }
