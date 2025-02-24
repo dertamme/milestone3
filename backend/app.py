@@ -115,6 +115,80 @@ def create_order():
     )
 
 
+@app.route("/api/products/<int:product_id>", methods=["PUT"])
+def update_product(product_id):
+    """
+    Expects JSON with at least one of the following fields:
+    {
+      "name": "New Product Name",
+      "description": "Updated description.",
+      "price": 349.99,
+      "category_id": 3,
+      "inventory_count": 8,
+      "supplier_id": 2
+    }
+    """
+    data = request.json
+
+    if not data:
+        return jsonify({"error": "No data provided for update"}), 400
+
+    try:
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+
+        # Update fields if provided
+        if "name" in data:
+            product.name = data["name"]
+        if "description" in data:
+            product.description = data["description"]
+        if "category_id" in data:
+            category = Category.query.get(int(data["category_id"]))
+            if not category:
+                return jsonify({"error": "Invalid category_id"}), 400
+            product.category_id = int(data["category_id"])
+        if "price" in data:
+            try:
+                product.price = float(data["price"])
+            except ValueError:
+                return jsonify({"error": "Invalid price value"}), 400
+
+        db.session.commit()
+
+        return (
+            jsonify(
+                {
+                    "message": "Product updated successfully",
+                    "product": product.to_dict(),
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
+@app.route("/api/products/<int:product_id>", methods=["DELETE"])
+def delete_product(product_id):
+    """
+    Deletes a product by its ID.
+    """
+    try:
+        product = Product.query.get(product_id)
+        if not product:
+            return jsonify({"error": "Product not found"}), 404
+
+        db.session.delete(product)
+        db.session.commit()
+
+        return jsonify({"message": "Product deleted successfully"}), 200
+
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
+
 # Add other endpoints as needed (e.g., categories, customers, inventory, orders)
 
 if __name__ == "__main__":
