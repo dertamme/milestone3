@@ -66,11 +66,11 @@ def create_order():
 
     data = request.json
     user_id = data.get("user_id", 1)  # Default to 1 if not provided
-    address = data.get("address")
     payment_method = data.get("payment_method")
     cart_items = data.get("cart_items", [])
 
-    if not address or not payment_method or not cart_items:
+    if not payment_method or not cart_items:
+
         return jsonify({"error": "Missing required checkout data"}), 400
 
     # 1. Create a new Order record
