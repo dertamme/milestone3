@@ -13,4 +13,22 @@ class Order(db.Model):
     payment_method = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
-    order_items = db.relationship("OrderItem", backref="order", lazy=True)
+    order_items = db.relationship(
+        "OrderItem",
+        backref="order",
+        lazy=True,
+        cascade="all, delete-orphan",
+        passive_deletes=True,
+    )
+
+    def to_dict(self):
+        return {
+            "order_id": self.order_id,
+            "customer_id": self.customer_id,
+            "order_date": self.order_date,
+            "status": self.status,
+            "total_amount": float(self.total_amount),
+            "payment_method": self.payment_method,
+            "created_at": self.created_at.isoformat() if self.created_at else None,
+            "order_items": [item.to_dict() for item in self.order_items],
+        }

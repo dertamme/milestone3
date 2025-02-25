@@ -12,3 +12,13 @@ class Customer(db.Model):
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
     orders = db.relationship("Order", backref="customer", lazy=True)
+
+
+def to_dict(self):
+    return {
+        "customer_id": self.customer_id,
+        "name": self.name,
+        "email": self.email,
+        "phone": self.phone,
+        "created_at": self.created_at.isoformat(),
+    }

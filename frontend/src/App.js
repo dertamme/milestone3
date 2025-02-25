@@ -6,6 +6,7 @@ import ProductDetails from "./components/ProductDetails";
 import ShoppingCart from "./components/ShoppingCart";
 import Checkout from "./components/Checkout";
 import ProductManagement from "./components/ProductManagement";
+import OrderManagement from "./components/OrderManagement";
 
 export default function App() {
   return (
@@ -25,6 +26,9 @@ export default function App() {
             <Button color='inherit' component={Link} to='/products'>
               Product Management
             </Button>
+            <Button color='inherit' component={Link} to='/orders'>
+              Order Management
+            </Button>
           </Toolbar>
         </AppBar>
         <Container sx={{ marginTop: 4 }}>
@@ -34,6 +38,7 @@ export default function App() {
             <Route path='/cart' element={<ShoppingCart />} />
             <Route path='/checkout' element={<Checkout />} />
             <Route path='/products' element={<ProductManagement />} />
+            <Route path='/orders' element={<OrderManagement />} />
           </Routes>
         </Container>
       </div>

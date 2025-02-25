@@ -145,7 +145,7 @@ ADD
 ALTER TABLE
     cloud.order_items
 ADD
-    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES cloud.orders (order_id);
+    CONSTRAINT fk_order_items_order FOREIGN KEY (order_id) REFERENCES cloud.orders (order_id) ON DELETE CASCADE;
 
 -- Add foreign key for orders.customer_id -> customers.customer_id
 ALTER TABLE
