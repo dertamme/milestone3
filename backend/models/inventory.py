@@ -20,3 +20,13 @@ class Inventory(db.Model):
 
     product = db.relationship("Product", backref="inventory", lazy=True)
     supplier = db.relationship("Supplier", backref="inventory", lazy=True)
+
+    def to_dict(self):
+        return {
+            "product_id": self.product_id,
+            "stock_level": self.stock_level,
+            "reorder_level": self.reorder_level,
+            "supplier_id": self.supplier_id,
+            "product_name": self.product.name if self.product else None,
+            "supplier_name": self.supplier.name if self.supplier else None,
+        }

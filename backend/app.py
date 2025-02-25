@@ -195,66 +195,114 @@ def delete_product(product_id):
 @app.route("/api/orders", methods=["POST"])
 def create_order():
     """
-    Expects JSON:
+    Creates a new order and updates inventory stock levels.
+    Expected JSON structure:
     {
-      "user_id": 1,
-      "address": "123 Main St",
-      "payment_method": "PayPal",
-      "cart_items": [
-        { "product_id": 1, "quantity": 2, "price": 12.99, "name": "Dining Table" },
-        ...
-      ]
+        "customer_id": 1,
+        "payment_method": "Credit Card",
+        "order_items": [
+            {
+                "product_id": 1,
+                "quantity": 2
+            },
+            ...
+        ]
     }
     """
+    try:
+        data = request.get_json()
+        if not data:
+            abort(400, description="No input data provided.")
 
-    data = request.json
-    user_id = data.get("user_id", 1)  # Default to 1 if not provided
-    payment_method = data.get("payment_method")
-    cart_items = data.get("cart_items", [])
+        customer_id = data.get("customer_id")
+        payment_method = data.get("payment_method")
+        order_items_data = data.get("order_items", [])
 
-    if not payment_method or not cart_items:
-        abort(400, description="Missing required checkout data")
+        if not customer_id or not payment_method or not order_items_data:
+            abort(400, description="Missing required order fields.")
 
-    # 1. Create a new Order record
-    new_order = Order(
-        customer_id=user_id,  # or user_id = 1 for tests
-        status="Pending",
-        total_amount=0,  # We'll sum up from cart_items
-        payment_method=payment_method,
-    )
-    db.session.add(new_order)
-    db.session.flush()  # Get the new order_id without committing yet
-
-    # 2. Create OrderItem records from cart_items
-    total = 0
-    for item in cart_items:
-        product_id = item.get("product_id")
-        quantity = item.get("quantity", 1)
-        price = item.get("price", 0)
-        total += price * quantity
-
-        new_item = OrderItem(
-            order_id=new_order.order_id,
-            product_id=product_id,
-            quantity=quantity,
-            price=price,
+        # Create Order
+        new_order = Order(
+            customer_id=customer_id,
+            payment_method=payment_method,
+            status="Pending",  # Default status
+            total_amount=0,  # Will calculate based on order items
         )
-        db.session.add(new_item)
+        db.session.add(new_order)
+        db.session.flush()  # Flush to get order_id
 
-    # 3. Update total_amount
-    new_order.total_amount = total
-    db.session.commit()
+        total_amount = 0
+        for item in order_items_data:
+            product_id = item.get("product_id")
+            quantity = item.get("quantity")
 
-    return (
-        jsonify(
-            {
-                "message": "Order created",
-                "order_id": new_order.order_id,
-                "total": float(total),
-            }
-        ),
-        201,
-    )
+            if not product_id or not quantity:
+                abort(400, description="Missing product_id or quantity in order items.")
+
+            inventory_item = Inventory.query.get(product_id)
+            if not inventory_item:
+                abort(
+                    404,
+                    description=f"Inventory item with product_id {product_id} not found.",
+                )
+
+            if inventory_item.stock_level < quantity:
+                abort(
+                    400, description=f"Insufficient stock for product_id {product_id}."
+                )
+
+            # Decrement stock level
+            inventory_item.stock_level -= quantity
+
+            # Calculate total amount (assuming you have a way to get product price)
+            product = inventory_item.product
+            if not product:
+                abort(
+                    404, description=f"Product with product_id {product_id} not found."
+                )
+
+            item_total = float(product.price) * quantity
+            total_amount += item_total
+
+            # Create OrderItem
+            order_item = OrderItem(
+                order_id=new_order.order_id,
+                product_id=product_id,
+                quantity=quantity,
+                price=product.price,
+            )
+            db.session.add(order_item)
+
+        new_order.total_amount = total_amount
+
+        db.session.commit()
+
+        # Optionally, check for low stock and notify
+        low_stock_items = Inventory.query.filter(
+            Inventory.stock_level <= Inventory.reorder_level
+        ).all()
+        if low_stock_items:
+            # Implement your notification logic here
+            # For example, send an email or log a message
+            for item in low_stock_items:
+                app.logger.info(
+                    f"Low stock alert for product_id {item.product_id}: Stock Level = {item.stock_level}"
+                )
+
+        return (
+            jsonify(
+                {
+                    "message": "Order created successfully.",
+                    "order_id": new_order.order_id,
+                }
+            ),
+            201,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(f"Error creating order: {str(e)}")
+        abort(500, description="An error occurred while creating the order.")
 
 
 # Read all orders
@@ -388,6 +436,95 @@ def delete_order(order_id):
     except Exception as e:
         db.session.rollback()
         abort(500, description=str(e))
+
+
+# ------------------ Inventory Management Endpoints ------------------ #
+
+
+@app.route("/api/inventory", methods=["GET"])
+def get_inventory():
+    """
+    Retrieves all inventory items.
+    Supports optional search by product_id or product_name.
+    """
+    try:
+        search = request.args.get("search", "", type=str)
+        query = Inventory.query.join(Product).join(Supplier)
+
+        if search:
+            search = f"%{search}%"
+            query = query.filter(
+                (Inventory.product_id.ilike(search)) | (Product.name.ilike(search))
+            )
+
+        inventory_items = query.all()
+        return jsonify([item.to_dict() for item in inventory_items]), 200
+
+    except Exception as e:
+        app.logger.error(f"Error fetching inventory: {str(e)}")
+        abort(500, description="An error occurred while fetching inventory.")
+
+
+@app.route("/api/inventory/<int:product_id>", methods=["PUT"])
+def update_inventory(product_id):
+    """
+    Updates the stock_level and/or reorder_level for a specific product.
+    """
+    try:
+        data = request.get_json()
+        if not data:
+            abort(400, description="No input data provided.")
+
+        inventory_item = Inventory.query.get(product_id)
+        if not inventory_item:
+            abort(404, description="Inventory item not found.")
+
+        stock_level = data.get("stock_level")
+        reorder_level = data.get("reorder_level")
+
+        if stock_level is not None:
+            if not isinstance(stock_level, int) or stock_level < 0:
+                abort(400, description="Invalid stock_level provided.")
+            inventory_item.stock_level = stock_level
+
+        if reorder_level is not None:
+            if not isinstance(reorder_level, int) or reorder_level < 0:
+                abort(400, description="Invalid reorder_level provided.")
+            inventory_item.reorder_level = reorder_level
+
+        db.session.commit()
+        return (
+            jsonify(
+                {
+                    "message": "Inventory updated successfully.",
+                    "inventory": inventory_item.to_dict(),
+                }
+            ),
+            200,
+        )
+
+    except Exception as e:
+        db.session.rollback()
+        app.logger.error(
+            f"Error updating inventory for product_id {product_id}: {str(e)}"
+        )
+        abort(500, description="An error occurred while updating inventory.")
+
+
+@app.route("/api/inventory/low_stock", methods=["GET"])
+def get_low_stock_inventory():
+    """
+    Retrieves inventory items where stock_level <= reorder_level.
+    """
+    try:
+        low_stock_items = Inventory.query.filter(
+            Inventory.stock_level <= Inventory.reorder_level
+        ).all()
+        return jsonify([item.to_dict() for item in low_stock_items]), 200
+
+    except Exception as e:
+        app.logger.error(f"Error fetching low stock inventory: {str(e)}")
+        abort(500, description="An error occurred while fetching low stock inventory.")
 
 
 # ------------------ Error Handlers ------------------ #
