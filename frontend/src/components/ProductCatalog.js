@@ -9,8 +9,7 @@ import {
   Grid,
   Container,
 } from "@mui/material";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "../config";
 
 export default function ProductCatalog() {
   const [products, setProducts] = useState([]);

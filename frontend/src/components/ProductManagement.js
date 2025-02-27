@@ -27,8 +27,7 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "../config";
 
 export default function ProductManagement() {
   // State variables

@@ -35,10 +35,8 @@ import {
   Visibility as VisibilityIcon,
 } from "@mui/icons-material";
 
-// Import the OrderDetails component
 import OrderDetails from "./OrderDetails";
-
-const API_URL = "http://localhost:5000/api";
+import { API_URL } from "../config";
 
 export default function OrderManagement() {
   // State variables
