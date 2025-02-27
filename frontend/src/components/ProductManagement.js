@@ -62,7 +62,6 @@ export default function ProductManagement() {
       name: "",
       description: "",
       price: "",
-      // Keep category_id for storing, but we'll display category_name in the table
       category_id: "",
       img_url: "",
     },
@@ -277,11 +276,13 @@ export default function ProductManagement() {
       {/* Search and Filter Section */}
       <Box
         display='flex'
-        alignItems='center'
+        flexDirection={{ xs: "column", sm: "row" }}
+        alignItems={{ xs: "stretch", sm: "center" }}
         justifyContent='space-between'
+        gap={2}
         sx={{ mb: 3 }}
       >
-        <Box display='flex' gap={2}>
+        <Box display='flex' flexWrap='wrap' gap={2}>
           <TextField
             label='Search'
             variant='outlined'
@@ -290,7 +291,6 @@ export default function ProductManagement() {
             onChange={(e) => setSearchTerm(e.target.value)}
             placeholder='Search by name or description...'
           />
-
           <TextField
             label='Filter by Price (max)'
             variant='outlined'
@@ -299,8 +299,6 @@ export default function ProductManagement() {
             value={priceFilter}
             onChange={(e) => setPriceFilter(e.target.value)}
           />
-
-          {/* Now categoryFilter is a text for category name */}
           <TextField
             label='Filter by Category Name'
             variant='outlined'
@@ -327,7 +325,10 @@ export default function ProductManagement() {
           <CircularProgress />
         </Box>
       ) : (
-        <TableContainer component={Paper}>
+        <TableContainer
+          component={Paper}
+          sx={{ maxWidth: "100%", overflowX: "auto" }}
+        >
           <Table aria-label='products table'>
             <TableHead>
               <TableRow>
@@ -359,8 +360,6 @@ export default function ProductManagement() {
                 filteredProducts.map((product) => (
                   <TableRow key={product.product_id}>
                     <TableCell>{product.product_id}</TableCell>
-
-                    {/* Show product image if available */}
                     <TableCell>
                       {product.img_url ? (
                         <img
@@ -374,16 +373,12 @@ export default function ProductManagement() {
                         </Typography>
                       )}
                     </TableCell>
-
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.description}</TableCell>
                     <TableCell>{product.price.toFixed(2)}</TableCell>
-
-                    {/* Display category_name if provided by the backend */}
                     <TableCell>
                       {product.category_name || "Unknown Category"}
                     </TableCell>
-
                     <TableCell align='center'>
                       <Tooltip title='Edit'>
                         <IconButton
@@ -469,17 +464,18 @@ export default function ProductManagement() {
               onChange={handleChange}
               required
             />
-
-            {/* user can optionally type direct image URL */}
             <TextField
               label='Image URL'
               name='img_url'
               value={dialog.product.img_url}
               onChange={handleChange}
             />
-
-            {/* or user can select a file to upload */}
-            <input type='file' accept='image/*' onChange={handleFileChange} />
+            <input
+              type='file'
+              accept='image/*'
+              onChange={handleFileChange}
+              style={{ marginTop: 8 }}
+            />
           </Box>
         </DialogContent>
         <DialogActions>

@@ -242,8 +242,10 @@ export default function OrderManagement() {
       {/* Search Bar */}
       <Box
         display='flex'
+        flexDirection={{ xs: "column", sm: "row" }}
         justifyContent='space-between'
-        alignItems='center'
+        alignItems={{ xs: "stretch", sm: "center" }}
+        gap={2}
         mb={2}
       >
         <TextField
@@ -251,7 +253,8 @@ export default function OrderManagement() {
           variant='outlined'
           value={searchTerm}
           onChange={handleSearchChange}
-          sx={{ width: "60%" }}
+          fullWidth
+          sx={{ maxWidth: { sm: "60%" } }}
         />
       </Box>
 
@@ -262,7 +265,10 @@ export default function OrderManagement() {
         </Box>
       ) : (
         <>
-          <TableContainer component={Paper}>
+          <TableContainer
+            component={Paper}
+            sx={{ maxWidth: "100%", overflowX: "auto" }}
+          >
             <Table aria-label='orders table'>
               <TableHead>
                 <TableRow>
