@@ -34,6 +34,7 @@ export default function ProductManagement() {
   // State variables
   const [products, setProducts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [imageFile, setImageFile] = useState(null);
 
   // Snackbar state
   const [snackbar, setSnackbar] = useState({
@@ -79,6 +80,12 @@ export default function ProductManagement() {
       });
       setLoading(false);
     }
+  };
+
+  // Function to handle file selection
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    setImageFile(file);
   };
 
   // Function to handle opening the dialog
@@ -160,32 +167,33 @@ export default function ProductManagement() {
     }
 
     try {
+      // Prepare form data
+      const formData = new FormData();
+      formData.append("name", product.name);
+      formData.append("description", product.description);
+      formData.append("price", parseFloat(product.price));
+      formData.append("category_id", parseInt(product.category_id));
+      // If user typed a direct URL, we still can pass it, or rely on file
+      if (product.img_url) {
+        formData.append("img_url", product.img_url);
+      }
+      // If a file is selected, append to form data
+      if (imageFile) {
+        formData.append("image", imageFile);
+      }
       let response;
       if (mode === "create") {
-        // Create a new product
+        // Create product
         response = await fetch(`${API_URL}/products`, {
           method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: product.name,
-            description: product.description,
-            price: parseFloat(product.price),
-            category_id: parseInt(product.category_id),
-            img_url: product.img_url || null,
-          }),
+          body: formData, // No JSON; direct FormData
+          // Note: do NOT set Content-Type manually if using FormData;
+          // fetch will auto-set the appropriate boundary
         });
       } else if (mode === "edit") {
-        // Update existing product
         response = await fetch(`${API_URL}/products/${product.product_id}`, {
           method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name: product.name,
-            description: product.description,
-            price: parseFloat(product.price),
-            category_id: parseInt(product.category_id),
-            img_url: product.img_url || null,
-          }),
+          body: formData,
         });
       }
 
@@ -400,12 +408,7 @@ export default function ProductManagement() {
               onChange={handleChange}
               required
             />
-            <TextField
-              label='Image URL'
-              name='img_url'
-              value={dialog.product.img_url}
-              onChange={handleChange}
-            />
+            <input type='file' accept='image/*' onChange={handleFileChange} />
           </Box>
         </DialogContent>
         <DialogActions>

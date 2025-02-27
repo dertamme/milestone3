@@ -8,7 +8,6 @@ load_dotenv()
 class Config:
     SQLALCHEMY_DATABASE_URI = os.getenv("DATABASE_URL")
     SQLALCHEMY_TRACK_MODIFICATIONS = False
-    SECRET_KEY = os.getenv("SECRET_KEY", "default-secret-key")  # Optional
     SQLALCHEMY_ECHO = False
 
     # Flask-Mail configurations
@@ -21,3 +20,7 @@ class Config:
     MAIL_DEFAULT_SENDER = os.getenv(
         "MAIL_DEFAULT_SENDER", MAIL_USERNAME
     )  # Default sender
+    IMAGE_BUCKET = os.getenv("IMAGE_BUCKET", "cloud-milestone-s3-image-bucket")
+    AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID", "False") == "True"
+    AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY", "False") == "True"
+    AWS_DEFAULT_REGION = os.getenv("AWS_DEFAULT_REGION", "eu-central-1") == "True"

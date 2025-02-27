@@ -1,6 +1,7 @@
 from flask import Blueprint, jsonify, request, abort, current_app
 from models.product import Product
 from models.category import Category
+from utils.upload_file_to_s3 import upload_file_to_s3
 from extensions import db
 
 products_bp = Blueprint("products_bp", __name__)
@@ -34,36 +35,37 @@ def get_product(product_id):
 @products_bp.route("/api/products", methods=["POST"])
 def create_product():
     """
-    Expects JSON:
-    {
-    "name": "Oak Dining Table",
-    "description": "A sturdy oak dining table that seats six.",
-    "price": 299.99,
-    "category_id": 2,
-    "img_url": "https://example-bucket.s3.amazonaws.com/mytable.jpg"  <-- optional
-    }
+    Expects multipart/form-data:
+      - name, description, price, category_id in request.form
+      - optional 'img_url' in request.form
+      - optional 'image' in request.files
     """
-    data = request.json
-
-    # Validate required fields
-    required_fields = [
-        "name",
-        "description",
-        "price",
-        "category_id",
-    ]
-    missing_fields = [field for field in required_fields if field not in data]
-
-    if missing_fields:
-        abort(400, description=f"Missing fields: {', '.join(missing_fields)}")
+    if "name" not in request.form:
+        abort(400, description="Missing field: name")
+    # ... check for other required fields
 
     try:
-        # Extract data
-        name = data["name"]
-        description = data["description"]
-        price = float(data["price"])
-        category_id = int(data["category_id"])
-        img_url = data.get("img_url")
+        name = request.form["name"]
+        description = request.form["description"]
+        price = float(request.form["price"])
+        category_id = int(request.form["category_id"])
+        img_url = request.form.get("img_url")  # optional
+
+        # Check if an image file is included
+        image_file = request.files.get("image")
+        uploaded_image_url = None
+
+        if image_file:
+            # 1) Upload image_file to S3 or local storage, get the final URL
+            # For example, if using S3:
+            uploaded_image_url = upload_file_to_s3(image_file)
+
+            # 2) Or if storing locally:
+            # image_file.save("/path/to/local.jpg")
+            # uploaded_image_url = "http://yourdomain.com/static/local.jpg"
+
+        # Decide final image link: user-defined URL or newly uploaded file
+        final_img_url = img_url or uploaded_image_url
 
         # Create new product
         new_product = Product(
@@ -71,7 +73,7 @@ def create_product():
             description=description,
             price=price,
             category_id=category_id,
-            img_url=img_url,
+            img_url=final_img_url,
         )
 
         db.session.add(new_product)
@@ -87,9 +89,10 @@ def create_product():
             201,
         )
 
-    except ValueError:
-        abort(400, description="Invalid data types provided.")
+    except ValueError as e:
+        abort(400, description=f"Invalid data: {str(e)}")
     except Exception as e:
+        current_app.logger.error(f"Error creating product: {str(e)}")
         abort(500, description=str(e))
 
 
@@ -107,34 +110,48 @@ def update_product(product_id):
     "supplier_id": 2
     }
     """
-    data = request.json
+    product = Product.query.get(product_id)
+    if not product:
+        abort(404, description="Product not found.")
 
-    if not data:
-        abort(400, description="No data provided for update")
-
+    # The request could come in as multipart form data
+    # Check if the required fields are present if you want to enforce them,
+    # otherwise they can be optional for an update.
     try:
-        product = Product.query.get(product_id)
-        if not product:
-            abort(404, description="Product not found.")
+        # If the user updated "name"
+        if "name" in request.form:
+            product.name = request.form["name"]
 
-        # Update fields if provided
-        if "name" in data:
-            product.name = data["name"]
-        if "description" in data:
-            product.description = data["description"]
-        if "category_id" in data:
-            category = Category.query.get(int(data["category_id"]))
-            if not category:
-                abort(400, description="Invalid category_id.")
-            product.category_id = int(data["category_id"])
-        if "price" in data:
+        if "description" in request.form:
+            product.description = request.form["description"]
+
+        if "price" in request.form:
             try:
-                product.price = float(data["price"])
+                product.price = float(request.form["price"])
             except ValueError:
                 abort(400, description="Invalid price value.")
 
-        if "img_url" in data:
-            product.img_url = data["img_url"]
+        if "category_id" in request.form:
+            category_id = int(request.form["category_id"])
+            # optional: validate that the category actually exists
+            category = Category.query.get(category_id)
+            if not category:
+                abort(400, description="Invalid category_id.")
+            product.category_id = category_id
+
+        # If user typed a direct URL (overriding an existing image)
+        new_img_url = request.form.get("img_url")  # optional
+        if new_img_url:
+            product.img_url = new_img_url
+
+        # Check if an image file is included
+        image_file = request.files.get("image")
+        if image_file:
+            # 1) Upload image_file to S3 (or local folder) and get final URL
+            uploaded_image_url = upload_file_to_s3(image_file)
+
+            # If you want to override any previously stored URL
+            product.img_url = uploaded_image_url
 
         db.session.commit()
 
