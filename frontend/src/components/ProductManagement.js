@@ -36,6 +36,11 @@ export default function ProductManagement() {
   const [loading, setLoading] = useState(true);
   const [imageFile, setImageFile] = useState(null);
 
+  // For searching & filtering
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priceFilter, setPriceFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
+
   // Snackbar state
   const [snackbar, setSnackbar] = useState({
     open: false,
@@ -43,7 +48,7 @@ export default function ProductManagement() {
     severity: "success", // 'success' | 'error' | 'warning' | 'info'
   });
 
-  // Dialog state
+  // Dialog state for create/edit
   const [dialog, setDialog] = useState({
     open: false,
     mode: "create", // 'create' | 'edit'
@@ -100,7 +105,7 @@ export default function ProductManagement() {
           description: product.description,
           price: product.price,
           category_id: product.category_id,
-          img_url: product.img_url,
+          img_url: product.img_url || "",
         },
       });
     } else {
@@ -133,6 +138,7 @@ export default function ProductManagement() {
         img_url: "",
       },
     });
+    setImageFile(null); // reset file selection
   };
 
   // Function to handle form input changes
@@ -173,22 +179,23 @@ export default function ProductManagement() {
       formData.append("description", product.description);
       formData.append("price", parseFloat(product.price));
       formData.append("category_id", parseInt(product.category_id));
+
       // If user typed a direct URL, we still can pass it, or rely on file
       if (product.img_url) {
         formData.append("img_url", product.img_url);
       }
+
       // If a file is selected, append to form data
       if (imageFile) {
         formData.append("image", imageFile);
       }
+
       let response;
       if (mode === "create") {
         // Create product
         response = await fetch(`${API_URL}/products`, {
           method: "POST",
           body: formData, // No JSON; direct FormData
-          // Note: do NOT set Content-Type manually if using FormData;
-          // fetch will auto-set the appropriate boundary
         });
       } else if (mode === "edit") {
         response = await fetch(`${API_URL}/products/${product.product_id}`, {
@@ -267,13 +274,68 @@ export default function ProductManagement() {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
+  // ====================
+  // Search & Filter Logic
+  // ====================
+  // SearchTerm => filter by product.name or product.description
+  // priceFilter => show only products whose price <= parseFloat(priceFilter)
+  // categoryFilter => show only products whose category_id == parseInt(categoryFilter)
+
+  const filteredProducts = products.filter((prod) => {
+    const matchesSearch =
+      prod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prod.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesPrice = !priceFilter || prod.price <= parseFloat(priceFilter);
+
+    const matchesCategory =
+      !categoryFilter || prod.category_id === parseInt(categoryFilter);
+
+    return matchesSearch && matchesPrice && matchesCategory;
+  });
+
   return (
     <Container maxWidth='lg' sx={{ mt: 4 }}>
       <Typography variant='h4' align='center' gutterBottom>
         Product Management
       </Typography>
 
-      <Box display='flex' justifyContent='flex-end' mb={2}>
+      {/* Search and Filter Section */}
+      <Box
+        display='flex'
+        alignItems='center'
+        justifyContent='space-between'
+        sx={{ mb: 3 }}
+      >
+        <Box display='flex' gap={2}>
+          <TextField
+            label='Search'
+            variant='outlined'
+            size='small'
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            placeholder='Search by name or description...'
+          />
+
+          <TextField
+            label='Filter by Price (max)'
+            variant='outlined'
+            size='small'
+            type='number'
+            value={priceFilter}
+            onChange={(e) => setPriceFilter(e.target.value)}
+          />
+
+          <TextField
+            label='Filter by Category'
+            variant='outlined'
+            size='small'
+            type='number'
+            value={categoryFilter}
+            onChange={(e) => setCategoryFilter(e.target.value)}
+          />
+        </Box>
+
         <Button
           variant='contained'
           color='primary'
@@ -298,6 +360,9 @@ export default function ProductManagement() {
                   <strong>ID</strong>
                 </TableCell>
                 <TableCell>
+                  <strong>Image</strong>
+                </TableCell>
+                <TableCell>
                   <strong>Name</strong>
                 </TableCell>
                 <TableCell>
@@ -315,10 +380,26 @@ export default function ProductManagement() {
               </TableRow>
             </TableHead>
             <TableBody>
-              {products.length > 0 ? (
-                products.map((product) => (
+              {filteredProducts.length > 0 ? (
+                filteredProducts.map((product) => (
                   <TableRow key={product.product_id}>
                     <TableCell>{product.product_id}</TableCell>
+
+                    {/* Show product image if available */}
+                    <TableCell>
+                      {product.img_url ? (
+                        <img
+                          src={product.img_url}
+                          alt={product.name}
+                          style={{ width: "60px", height: "auto" }}
+                        />
+                      ) : (
+                        <Typography variant='body2' color='textSecondary'>
+                          No image
+                        </Typography>
+                      )}
+                    </TableCell>
+
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.description}</TableCell>
                     <TableCell>{product.price.toFixed(2)}</TableCell>
@@ -345,8 +426,8 @@ export default function ProductManagement() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align='center'>
-                    No products available.
+                  <TableCell colSpan={7} align='center'>
+                    No products found.
                   </TableCell>
                 </TableRow>
               )}
@@ -408,6 +489,16 @@ export default function ProductManagement() {
               onChange={handleChange}
               required
             />
+
+            {/* user can optionally type direct image URL */}
+            <TextField
+              label='Image URL'
+              name='img_url'
+              value={dialog.product.img_url}
+              onChange={handleChange}
+            />
+
+            {/* or user can select a file to upload */}
             <input type='file' accept='image/*' onChange={handleFileChange} />
           </Box>
         </DialogContent>
