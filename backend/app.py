@@ -23,6 +23,7 @@ def create_app():
     app.register_blueprint(orders_bp)
     app.register_blueprint(products_bp)
     app.register_blueprint(inventory_bp)
+    app.register_blueprint(blueprint=health_bp)
 
     return app
 
