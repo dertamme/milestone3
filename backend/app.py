@@ -5,6 +5,8 @@ from extensions import mail, db
 from routes import *
 from models import *
 
+app = None
+
 
 def create_app():
     app = Flask(__name__)
@@ -25,8 +27,9 @@ def create_app():
     return app
 
 
+app = create_app()
+
 if __name__ == "__main__":
-    app = create_app()
     with app.app_context():
         db.create_all()  # Create tables if they don't exist
     app.run(debug=True)
