@@ -50,14 +50,6 @@ export default function Checkout() {
     console.log("Creating order in backend with:", orderData);
 
     return createOrder(orderData)
-      .then((res) => {
-        if (!res.ok) {
-          return res.json().then((data) => {
-            throw new Error(data.error || "Order creation failed");
-          });
-        }
-        return res.json();
-      })
       .then((data) => {
         // Show success Snackbar
         setSnackbar({
