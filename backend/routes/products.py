@@ -40,6 +40,7 @@ def create_product():
     "description": "A sturdy oak dining table that seats six.",
     "price": 299.99,
     "category_id": 2,
+    "img_url": "https://example-bucket.s3.amazonaws.com/mytable.jpg"  <-- optional
     }
     """
     data = request.json
@@ -62,10 +63,15 @@ def create_product():
         description = data["description"]
         price = float(data["price"])
         category_id = int(data["category_id"])
+        img_url = data.get("img_url")
 
         # Create new product
         new_product = Product(
-            name=name, description=description, price=price, category_id=category_id
+            name=name,
+            description=description,
+            price=price,
+            category_id=category_id,
+            img_url=img_url,
         )
 
         db.session.add(new_product)
@@ -126,6 +132,9 @@ def update_product(product_id):
                 product.price = float(data["price"])
             except ValueError:
                 abort(400, description="Invalid price value.")
+
+        if "img_url" in data:
+            product.img_url = data["img_url"]
 
         db.session.commit()
 

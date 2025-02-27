@@ -30,6 +30,14 @@ export default function ProductCatalog() {
         {products.map((product) => (
           <Grid item xs={12} sm={6} md={4} key={product.product_id}>
             <Card sx={{ maxWidth: 345, p: 2 }}>
+              {/* If product.img_url is present, show <CardMedia> or <img>. */}
+              {product.img_url && (
+                <img
+                  src={product.img_url}
+                  alt={product.name}
+                  style={{ width: "100%", height: "auto" }}
+                />
+              )}
               <CardContent>
                 <Typography variant='h6'>{product.name}</Typography>
                 <Typography variant='body2' color='textSecondary'>

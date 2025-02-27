@@ -16,6 +16,7 @@ class Product(db.Model):
     updated_at = db.Column(
         db.DateTime, server_default=db.func.now(), onupdate=db.func.now()
     )
+    img_url = db.Column(db.Text, nullable=True)
 
     def to_dict(self):
         return {
@@ -26,4 +27,5 @@ class Product(db.Model):
             "price": float(self.price),
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
+            "img_url": self.img_url,
         }

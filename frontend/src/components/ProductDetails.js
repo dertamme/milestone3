@@ -48,6 +48,15 @@ export default function ProductDetails() {
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 4 }}>
+        {product.img_url && (
+          <Box>
+            <img
+              src={product.img_url}
+              alt={product.name}
+              style={{ maxWidth: "100%", height: "auto", margin: "1rem 0" }}
+            />
+          </Box>
+        )}
         <Typography variant='h4'>{product.name}</Typography>
         <Typography variant='body1' sx={{ mt: 2 }}>
           {product.description}

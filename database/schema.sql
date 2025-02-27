@@ -99,6 +99,7 @@ CREATE TABLE products (
     price numeric(10, 2) NOT NULL,
     created_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
     updated_at timestamp DEFAULT CURRENT_TIMESTAMP NULL,
+    img_url text NULL,
     CONSTRAINT products_pkey PRIMARY KEY (product_id)
 );
 

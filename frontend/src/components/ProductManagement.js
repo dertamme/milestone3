@@ -52,6 +52,7 @@ export default function ProductManagement() {
       description: "",
       price: "",
       category_id: "",
+      img_url: "",
     },
   });
 
@@ -92,6 +93,7 @@ export default function ProductManagement() {
           description: product.description,
           price: product.price,
           category_id: product.category_id,
+          img_url: product.img_url,
         },
       });
     } else {
@@ -104,6 +106,7 @@ export default function ProductManagement() {
           description: "",
           price: "",
           category_id: "",
+          img_url: "",
         },
       });
     }
@@ -120,6 +123,7 @@ export default function ProductManagement() {
         description: "",
         price: "",
         category_id: "",
+        img_url: "",
       },
     });
   };
@@ -167,6 +171,7 @@ export default function ProductManagement() {
             description: product.description,
             price: parseFloat(product.price),
             category_id: parseInt(product.category_id),
+            img_url: product.img_url || null,
           }),
         });
       } else if (mode === "edit") {
@@ -179,6 +184,7 @@ export default function ProductManagement() {
             description: product.description,
             price: parseFloat(product.price),
             category_id: parseInt(product.category_id),
+            img_url: product.img_url || null,
           }),
         });
       }
@@ -393,6 +399,12 @@ export default function ProductManagement() {
               value={dialog.product.category_id}
               onChange={handleChange}
               required
+            />
+            <TextField
+              label='Image URL'
+              name='img_url'
+              value={dialog.product.img_url}
+              onChange={handleChange}
             />
           </Box>
         </DialogContent>
