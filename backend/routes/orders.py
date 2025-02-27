@@ -215,17 +215,21 @@ def get_order_details(order_id):
 @orders_bp.route("/api/orders/<int:order_id>/status", methods=["PUT"])
 def update_order_status(order_id):
     """
-    Updates the status of an order and sends shipping notification if shipped.
+    Updates the status of an order and sends a status/shipping notification on
+    every status change.
+
     Expected JSON structure:
     {
         "status": "Shipped",
         "shipping_details": {
-            "shipping_date": "2023-09-15",
+            "shipping_date": "2025-01-31",
             "carrier": "UPS",
             "tracking_number": "1Z999AA10123456784",
             "tracking_url": "https://www.ups.com/track?loc=en_US&tracknum=1Z999AA10123456784"
         }
     }
+
+    Note: shipping_details is optional but recommended if the status is "Shipped".
     """
     try:
         data = request.get_json()
@@ -238,31 +242,29 @@ def update_order_status(order_id):
         if not new_status:
             abort(400, description="Status field is required.")
 
+        # Fetch the order
         order = Order.query.get(order_id)
         if not order:
             abort(404, description="Order not found.")
 
         previous_status = order.status
-        order.status = new_status
 
-        # Commit the status update
+        # Update the status
+        order.status = new_status
         db.session.commit()
 
-        # If status changed to "Shipped", send shipping notification
-        if previous_status != "Shipped" and new_status == "Shipped":
-            customer = order.customer  # Assuming a relationship exists
+        # If the status has changed, send a notification email
+        if previous_status != new_status:
+            # Get the associated customer
+            customer = order.customer
             if not customer:
                 abort(404, description="Associated customer not found.")
 
-            # Validate shipping_details
-            required_fields = [
-                "shipping_date",
-                "carrier",
-                "tracking_number",
-                "tracking_url",
-            ]
-            if not all(field in shipping_details for field in required_fields):
-                abort(400, description="Missing shipping details fields.")
+            # (Optional) If you want shipping_details to be mandatory only for "Shipped":
+            # if new_status == "Shipped":
+            #     required_fields = ["shipping_date", "carrier", "tracking_number", "tracking_url"]
+            #     if not all(field in shipping_details for field in required_fields):
+            #         abort(400, description="Missing shipping details fields for Shipped status.")
 
             send_shipping_notification_email(
                 customer_email=customer.email,
