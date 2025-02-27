@@ -9,11 +9,16 @@ import {
   Button,
   Grid,
   Container,
+  TextField,
+  Box,
 } from "@mui/material";
 import { fetchProducts } from "../services/productService";
 
 export default function ProductCatalog() {
   const [products, setProducts] = useState([]);
+  const [searchTerm, setSearchTerm] = useState("");
+  const [priceFilter, setPriceFilter] = useState("");
+  const [categoryFilter, setCategoryFilter] = useState("");
 
   useEffect(() => {
     loadProducts();
@@ -29,13 +34,57 @@ export default function ProductCatalog() {
     }
   };
 
+  // ========================
+  // Search & Filter
+  // ========================
+  // We assume backend returns product.category_name
+  // categoryFilter => user can type e.g. "Chairs"
+
+  const filteredProducts = products.filter((prod) => {
+    const matchesSearch =
+      prod.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      prod.description.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesPrice = !priceFilter || prod.price <= parseFloat(priceFilter);
+
+    const catName = prod.category_name ? prod.category_name.toLowerCase() : "";
+    const matchesCategory =
+      !categoryFilter || catName.includes(categoryFilter.toLowerCase());
+
+    return matchesSearch && matchesPrice && matchesCategory;
+  });
+
   return (
     <Container sx={{ mt: 4 }}>
       <Typography variant='h4' gutterBottom>
         Product Catalog
       </Typography>
+      <Box sx={{ display: "flex", flexDirection: "column", gap: 2, mb: 4 }}>
+        <TextField
+          fullWidth
+          label='Search Products'
+          variant='outlined'
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+        />
+        <TextField
+          fullWidth
+          label='Max Price'
+          variant='outlined'
+          type='number'
+          value={priceFilter}
+          onChange={(e) => setPriceFilter(e.target.value)}
+        />
+        <TextField
+          fullWidth
+          label='Category'
+          variant='outlined'
+          value={categoryFilter}
+          onChange={(e) => setCategoryFilter(e.target.value)}
+        />
+      </Box>
       <Grid container spacing={3}>
-        {products.map((product) => (
+        {filteredProducts.map((product) => (
           <Grid item xs={12} sm={6} md={4} key={product.product_id}>
             <Card
               sx={{
@@ -65,6 +114,11 @@ export default function ProductCatalog() {
                 <Typography variant='h6' sx={{ mt: 2 }}>
                   ${product.price}
                 </Typography>
+                {product.category_name && (
+                  <Typography variant='body2' color='textSecondary'>
+                    Category: {product.category_name}
+                  </Typography>
+                )}
               </CardContent>
               <CardActions>
                 <Button
