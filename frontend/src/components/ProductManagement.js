@@ -27,7 +27,12 @@ import {
   Edit as EditIcon,
   Delete as DeleteIcon,
 } from "@mui/icons-material";
-import { API_URL } from "../config";
+import {
+  fetchProducts,
+  createProduct,
+  updateProduct,
+  deleteProduct,
+} from "../services/productService";
 
 export default function ProductManagement() {
   // State variables
@@ -65,17 +70,13 @@ export default function ProductManagement() {
 
   // Fetch products on component mount
   useEffect(() => {
-    fetchProducts();
+    loadProducts();
   }, []);
 
   // Function to fetch all products
-  const fetchProducts = async () => {
+  const loadProducts = async () => {
     try {
-      const response = await fetch(`${API_URL}/products`);
-      if (!response.ok) {
-        throw new Error("Failed to fetch products.");
-      }
-      const data = await response.json();
+      const data = await fetchProducts();
       setProducts(data);
       setLoading(false);
     } catch (error) {
@@ -191,30 +192,19 @@ export default function ProductManagement() {
         formData.append("image", imageFile);
       }
 
-      let response;
+      let result;
       if (mode === "create") {
-        response = await fetch(`${API_URL}/products`, {
-          method: "POST",
-          body: formData,
-        });
+        result = await createProduct(formData);
       } else {
-        response = await fetch(`${API_URL}/products/${product.product_id}`, {
-          method: "PUT",
-          body: formData,
-        });
-      }
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Something went wrong.");
+        result = await updateProduct(product.product_id, formData);
       }
 
       setSnackbar({
         open: true,
-        message: data.message,
+        message: result.message,
         severity: "success",
       });
-      fetchProducts();
+      loadProducts();
       handleCloseDialog();
     } catch (error) {
       setSnackbar({
@@ -232,21 +222,14 @@ export default function ProductManagement() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/products/${product_id}`, {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-      if (!response.ok) {
-        throw new Error(data.message || "Failed to delete product.");
-      }
+      const result = await deleteProduct(product_id);
 
       setSnackbar({
         open: true,
-        message: data.message,
+        message: result.message,
         severity: "success",
       });
-      fetchProducts();
+      loadProducts();
     } catch (error) {
       setSnackbar({
         open: true,

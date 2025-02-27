@@ -1,5 +1,3 @@
-// src/components/OrderManagement.js
-
 import React, { useState, useEffect } from "react";
 import {
   Container,
@@ -36,7 +34,11 @@ import {
 } from "@mui/icons-material";
 
 import OrderDetails from "./OrderDetails";
-import { API_URL } from "../config";
+import {
+  fetchOrders,
+  updateOrderStatus,
+  deleteOrder,
+} from "../services/orderService";
 
 export default function OrderManagement() {
   // State variables
@@ -73,24 +75,15 @@ export default function OrderManagement() {
 
   // Fetch orders on component mount and when page or searchTerm changes
   useEffect(() => {
-    fetchOrders();
+    loadOrders();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPage, searchTerm]);
 
   // Function to fetch orders with pagination and search
-  const fetchOrders = async () => {
+  const loadOrders = async () => {
     setLoading(true);
     try {
-      let url = `${API_URL}/orders?page=${currentPage}&per_page=${perPage}`;
-      // Assuming backend supports search by order_id or customer_id via query params
-      if (searchTerm) {
-        url += `&search=${searchTerm}`;
-      }
-      const response = await fetch(url);
-      if (!response.ok) {
-        throw new Error("Failed to fetch orders.");
-      }
-      const data = await response.json();
+      const data = await fetchOrders(currentPage, perPage, searchTerm);
       setOrders(data.orders || data); // Adjust based on backend response
       setTotalPages(data.pages || 1);
       setLoading(false);
@@ -171,30 +164,19 @@ export default function OrderManagement() {
     }
 
     try {
-      const response = await fetch(
-        `${API_URL}/orders/${order.order_id}/status`,
-        {
-          method: "PUT",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ status: newStatus }),
-        }
-      );
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to update order status.");
-      }
+      const result = await updateOrderStatus(order.order_id, {
+        status: newStatus,
+      });
 
       // Success
       setSnackbar({
         open: true,
-        message: data.message,
+        message: result.message,
         severity: "success",
       });
 
       // Refresh orders
-      fetchOrders();
+      loadOrders();
 
       // Close dialog
       handleCloseUpdateDialog();
@@ -214,25 +196,17 @@ export default function OrderManagement() {
     }
 
     try {
-      const response = await fetch(`${API_URL}/orders/${order_id}`, {
-        method: "DELETE",
-      });
-
-      const data = await response.json();
-
-      if (!response.ok) {
-        throw new Error(data.error || "Failed to delete order.");
-      }
+      const result = await deleteOrder(order_id);
 
       // Success
       setSnackbar({
         open: true,
-        message: data.message,
+        message: result.message,
         severity: "success",
       });
 
       // Refresh orders
-      fetchOrders();
+      loadOrders();
     } catch (error) {
       setSnackbar({
         open: true,

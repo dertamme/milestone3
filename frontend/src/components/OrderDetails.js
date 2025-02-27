@@ -1,5 +1,3 @@
-// src/components/OrderDetails.js
-
 import React from "react";
 import {
   Dialog,

@@ -9,7 +9,7 @@ import {
   Snackbar,
   Alert,
 } from "@mui/material";
-import { API_URL } from "../config";
+import { createOrder } from "../services/orderService";
 
 export default function Checkout() {
   const [cartItems, setCartItems] = useState([]);
@@ -49,11 +49,7 @@ export default function Checkout() {
 
     console.log("Creating order in backend with:", orderData);
 
-    return fetch(`${API_URL}/orders`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(orderData),
-    })
+    return createOrder(orderData)
       .then((res) => {
         if (!res.ok) {
           return res.json().then((data) => {

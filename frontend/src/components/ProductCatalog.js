@@ -9,16 +9,24 @@ import {
   Grid,
   Container,
 } from "@mui/material";
-import { API_URL } from "../config";
+import { fetchProducts } from "../services/productService";
 
 export default function ProductCatalog() {
   const [products, setProducts] = useState([]);
 
   useEffect(() => {
-    fetch(`${API_URL}/products`)
-      .then((res) => res.json())
-      .then((data) => setProducts(data));
+    loadProducts();
   }, []);
+
+  const loadProducts = async () => {
+    try {
+      const data = await fetchProducts();
+      setProducts(data);
+    } catch (error) {
+      console.error("Error loading products:", error);
+      // Optionally show an error message or snackbar
+    }
+  };
 
   return (
     <Container sx={{ mt: 4 }}>
