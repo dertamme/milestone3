@@ -26,4 +26,5 @@ class OrderItem(db.Model):
             "product_id": self.product_id,
             "quantity": self.quantity,
             "price": float(self.price),
+            "product_name": self.product.name if self.product else None,
         }
