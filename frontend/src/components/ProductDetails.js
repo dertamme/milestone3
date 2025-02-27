@@ -48,6 +48,7 @@ export default function ProductDetails() {
   return (
     <Container sx={{ mt: 4 }}>
       <Paper sx={{ p: 4 }}>
+        {/* If product has an image */}
         {product.img_url && (
           <Box>
             <img
@@ -57,7 +58,16 @@ export default function ProductDetails() {
             />
           </Box>
         )}
+
         <Typography variant='h4'>{product.name}</Typography>
+
+        {/* Show the category name if present */}
+        {product.category_name && (
+          <Typography variant='subtitle1' sx={{ mt: 1 }}>
+            Category: {product.category_name}
+          </Typography>
+        )}
+
         <Typography variant='body1' sx={{ mt: 2 }}>
           {product.description}
         </Typography>

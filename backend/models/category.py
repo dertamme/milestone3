@@ -9,5 +9,3 @@ class Category(db.Model):
     name = db.Column(db.Text, nullable=False)
     description = db.Column(db.Text)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
-
-    products = db.relationship("Product", backref="category", lazy=True)

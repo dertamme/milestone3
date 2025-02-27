@@ -39,6 +39,7 @@ export default function ProductManagement() {
   // For searching & filtering
   const [searchTerm, setSearchTerm] = useState("");
   const [priceFilter, setPriceFilter] = useState("");
+  // Now categoryFilter is a text-based filter
   const [categoryFilter, setCategoryFilter] = useState("");
 
   // Snackbar state
@@ -57,6 +58,7 @@ export default function ProductManagement() {
       name: "",
       description: "",
       price: "",
+      // Keep category_id for storing, but we'll display category_name in the table
       category_id: "",
       img_url: "",
     },
@@ -87,31 +89,31 @@ export default function ProductManagement() {
     }
   };
 
-  // Function to handle file selection
+  // Handle file selection for image upload
   const handleFileChange = (e) => {
     const file = e.target.files[0];
     setImageFile(file);
   };
 
-  // Function to handle opening the dialog
+  // Open the dialog for create/edit
   const handleOpenDialog = (mode, product = null) => {
     if (mode === "edit" && product) {
       setDialog({
         open: true,
-        mode: mode,
+        mode,
         product: {
           product_id: product.product_id,
           name: product.name,
           description: product.description,
           price: product.price,
-          category_id: product.category_id,
+          category_id: product.category_id || "",
           img_url: product.img_url || "",
         },
       });
     } else {
       setDialog({
         open: true,
-        mode: mode,
+        mode,
         product: {
           product_id: null,
           name: "",
@@ -124,7 +126,7 @@ export default function ProductManagement() {
     }
   };
 
-  // Function to handle closing the dialog
+  // Close the dialog
   const handleCloseDialog = () => {
     setDialog({
       open: false,
@@ -138,10 +140,10 @@ export default function ProductManagement() {
         img_url: "",
       },
     });
-    setImageFile(null); // reset file selection
+    setImageFile(null);
   };
 
-  // Function to handle form input changes
+  // Update form fields
   const handleChange = (e) => {
     const { name, value } = e.target;
     setDialog((prev) => ({
@@ -153,7 +155,7 @@ export default function ProductManagement() {
     }));
   };
 
-  // Function to handle form submission (Create or Update)
+  // Create or Update the product
   const handleSubmit = async () => {
     const { mode, product } = dialog;
 
@@ -180,24 +182,23 @@ export default function ProductManagement() {
       formData.append("price", parseFloat(product.price));
       formData.append("category_id", parseInt(product.category_id));
 
-      // If user typed a direct URL, we still can pass it, or rely on file
+      // If user typed a direct URL
       if (product.img_url) {
         formData.append("img_url", product.img_url);
       }
 
-      // If a file is selected, append to form data
+      // If a file is selected
       if (imageFile) {
         formData.append("image", imageFile);
       }
 
       let response;
       if (mode === "create") {
-        // Create product
         response = await fetch(`${API_URL}/products`, {
           method: "POST",
-          body: formData, // No JSON; direct FormData
+          body: formData,
         });
-      } else if (mode === "edit") {
+      } else {
         response = await fetch(`${API_URL}/products/${product.product_id}`, {
           method: "PUT",
           body: formData,
@@ -205,22 +206,16 @@ export default function ProductManagement() {
       }
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Something went wrong.");
       }
 
-      // Success
       setSnackbar({
         open: true,
         message: data.message,
         severity: "success",
       });
-
-      // Refresh products list
       fetchProducts();
-
-      // Close dialog
       handleCloseDialog();
     } catch (error) {
       setSnackbar({
@@ -231,7 +226,7 @@ export default function ProductManagement() {
     }
   };
 
-  // Function to handle deleting a product
+  // Delete product
   const handleDelete = async (product_id) => {
     if (!window.confirm("Are you sure you want to delete this product?")) {
       return;
@@ -243,19 +238,15 @@ export default function ProductManagement() {
       });
 
       const data = await response.json();
-
       if (!response.ok) {
         throw new Error(data.message || "Failed to delete product.");
       }
 
-      // Success
       setSnackbar({
         open: true,
         message: data.message,
         severity: "success",
       });
-
-      // Refresh products list
       fetchProducts();
     } catch (error) {
       setSnackbar({
@@ -266,7 +257,7 @@ export default function ProductManagement() {
     }
   };
 
-  // Function to handle closing the snackbar
+  // Close the snackbar
   const handleCloseSnackbar = (event, reason) => {
     if (reason === "clickaway") {
       return;
@@ -274,12 +265,11 @@ export default function ProductManagement() {
     setSnackbar((prev) => ({ ...prev, open: false }));
   };
 
-  // ====================
-  // Search & Filter Logic
-  // ====================
-  // SearchTerm => filter by product.name or product.description
-  // priceFilter => show only products whose price <= parseFloat(priceFilter)
-  // categoryFilter => show only products whose category_id == parseInt(categoryFilter)
+  // ========================
+  // Search & Filter
+  // ========================
+  // We assume backend returns product.category_name
+  // categoryFilter => user can type e.g. "Chairs"
 
   const filteredProducts = products.filter((prod) => {
     const matchesSearch =
@@ -288,8 +278,10 @@ export default function ProductManagement() {
 
     const matchesPrice = !priceFilter || prod.price <= parseFloat(priceFilter);
 
+    // For categoryFilter, we compare to product.category_name if available
+    const catName = prod.category_name ? prod.category_name.toLowerCase() : "";
     const matchesCategory =
-      !categoryFilter || prod.category_id === parseInt(categoryFilter);
+      !categoryFilter || catName.includes(categoryFilter.toLowerCase());
 
     return matchesSearch && matchesPrice && matchesCategory;
   });
@@ -326,13 +318,14 @@ export default function ProductManagement() {
             onChange={(e) => setPriceFilter(e.target.value)}
           />
 
+          {/* Now categoryFilter is a text for category name */}
           <TextField
-            label='Filter by Category'
+            label='Filter by Category Name'
             variant='outlined'
             size='small'
-            type='number'
             value={categoryFilter}
             onChange={(e) => setCategoryFilter(e.target.value)}
+            placeholder='e.g. Chairs, Tables...'
           />
         </Box>
 
@@ -372,7 +365,7 @@ export default function ProductManagement() {
                   <strong>Price ($)</strong>
                 </TableCell>
                 <TableCell>
-                  <strong>Category ID</strong>
+                  <strong>Category</strong>
                 </TableCell>
                 <TableCell align='center'>
                   <strong>Actions</strong>
@@ -403,7 +396,12 @@ export default function ProductManagement() {
                     <TableCell>{product.name}</TableCell>
                     <TableCell>{product.description}</TableCell>
                     <TableCell>{product.price.toFixed(2)}</TableCell>
-                    <TableCell>{product.category_id}</TableCell>
+
+                    {/* Display category_name if provided by the backend */}
+                    <TableCell>
+                      {product.category_name || "Unknown Category"}
+                    </TableCell>
+
                     <TableCell align='center'>
                       <Tooltip title='Edit'>
                         <IconButton

@@ -18,6 +18,8 @@ class Product(db.Model):
     )
     img_url = db.Column(db.Text, nullable=True)
 
+    category = db.relationship("Category", backref="products", lazy=True)
+
     def to_dict(self):
         return {
             "product_id": self.product_id,
@@ -28,4 +30,5 @@ class Product(db.Model):
             "created_at": self.created_at.isoformat(),
             "updated_at": self.updated_at.isoformat(),
             "img_url": self.img_url,
+            "category_name": self.category.name if self.category else None,
         }
