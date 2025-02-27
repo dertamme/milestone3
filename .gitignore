@@ -24,10 +24,10 @@ frontend/package-lock.json
 frontend/yarn.lock
 
 # Python (Backend)
-backend/__pycache__/
 backend/*.py[cod]
 backend/instance/
 backend/.pytest_cache/
+*__pycache__
 
 # Environment files
 backend/.env
@@ -58,7 +58,5 @@ desktop.ini
 *.bak
 *.tmp
 *.log
-
-backend/models/__pycache__
 
 .env

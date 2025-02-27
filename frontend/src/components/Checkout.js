@@ -43,9 +43,9 @@ export default function Checkout() {
   // Create order in backend
   const createOrderInBackend = useCallback(() => {
     const orderData = {
-      user_id: 1, // Hardcoded test user
+      customer_id: 1, // Hardcoded test user
       payment_method: "PayPal",
-      cart_items: cartItems,
+      order_items: cartItems,
     };
 
     console.log("Creating order in backend with:", orderData);

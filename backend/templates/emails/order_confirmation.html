@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Order Confirmation</title>
+  </head>
+  <body>
+    <h2>Thank You for Your Order, {{ customer_name }}!</h2>
+    <p>
+      Your order (ID: {{ order_id }}) has been successfully placed on {{
+      order_date }}.
+    </p>
+    <h3>Order Details:</h3>
+    <table border="1" cellpadding="5" cellspacing="0">
+      <thead>
+        <tr>
+          <th>Product Name</th>
+          <th>Quantity</th>
+          <th>Price ($)</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in order_items %}
+        <tr>
+          <td>{{ item.product_name }}</td>
+          <td>{{ item.quantity }}</td>
+          <td>{{ "%.2f"|format(item.price) }}</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+    <p><strong>Total Amount:</strong> ${{ "%.2f"|format(total_amount) }}</p>
+    <p>We will notify you once your order has been shipped.</p>
+    <p>Thank you for shopping with us!</p>
+  </body>
+</html>

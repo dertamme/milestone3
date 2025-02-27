@@ -1,0 +1,14 @@
+Your Order Has Been Shipped, {{ customer_name }}!
+
+Your order (ID: {{ order_id }}) was shipped on {{ shipping_date }}.
+
+Shipping Details:
+Carrier: {{ carrier }}
+Tracking Number: {{ tracking_number }}
+
+You can track your shipment using the following link:
+{{ tracking_url }}
+
+If you have any questions, feel free to contact our support team.
+
+Thank you for shopping with us!

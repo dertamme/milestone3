@@ -1,4 +1,4 @@
-from . import db
+from extensions import db
 
 
 class Order(db.Model):
@@ -13,6 +13,7 @@ class Order(db.Model):
     payment_method = db.Column(db.String(50))
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
+    customer = db.relationship("Customer", back_populates="orders", lazy=True)
     order_items = db.relationship(
         "OrderItem",
         backref="order",

@@ -1,0 +1,14 @@
+Thank You for Your Order, {{ customer_name }}!
+
+Your order (ID: {{ order_id }}) has been successfully placed on {{ order_date }}.
+
+Order Details:
+{% for item in order_items %}
+- {{ item.product_name }} | Quantity: {{ item.quantity }} | Price: ${{ "%.2f"|format(item.price) }}
+{% endfor %}
+
+Total Amount: ${{ "%.2f"|format(total_amount) }}
+
+We will notify you once your order has been shipped.
+
+Thank you for shopping with us!

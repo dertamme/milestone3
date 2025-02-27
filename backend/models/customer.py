@@ -1,4 +1,4 @@
-from . import db
+from extensions import db
 
 
 class Customer(db.Model):
@@ -11,7 +11,7 @@ class Customer(db.Model):
     phone = db.Column(db.Text)
     created_at = db.Column(db.DateTime, server_default=db.func.now())
 
-    orders = db.relationship("Order", backref="customer", lazy=True)
+    orders = db.relationship("Order", back_populates="customer", lazy=True)
 
 
 def to_dict(self):
