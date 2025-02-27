@@ -4,6 +4,7 @@ import {
   Card,
   CardContent,
   CardActions,
+  CardMedia,
   Typography,
   Button,
   Grid,
@@ -36,16 +37,27 @@ export default function ProductCatalog() {
       <Grid container spacing={3}>
         {products.map((product) => (
           <Grid item xs={12} sm={6} md={4} key={product.product_id}>
-            <Card sx={{ maxWidth: 345, p: 2 }}>
-              {/* If product.img_url is present, show <CardMedia> or <img>. */}
+            <Card
+              sx={{
+                maxWidth: 345,
+                p: 2,
+                display: "flex",
+                flexDirection: "column",
+                height: "100%",
+              }}
+            >
               {product.img_url && (
-                <img
-                  src={product.img_url}
+                <CardMedia
+                  component='img'
+                  image={product.img_url}
                   alt={product.name}
-                  style={{ width: "100%", height: "auto" }}
+                  sx={{
+                    height: 200, // fixed height for consistent card sizes
+                    objectFit: "cover", // ensures image covers the area
+                  }}
                 />
               )}
-              <CardContent>
+              <CardContent sx={{ flexGrow: 1 }}>
                 <Typography variant='h6'>{product.name}</Typography>
                 <Typography variant='body2' color='textSecondary'>
                   {product.description}
